@@ -7,18 +7,22 @@ data = {"meals": ("breakfast", "brunch", "lunch", "supper"),
         "ingredients": ("milk", "cacao", "strawberry", "blueberry", "blackberry", "sugar"),
         "measures": ("ml", "g", "l", "cup", "tbsp", "tsp", "dsp", "")}
 
-# Connect to database file and return a connection object
-def connect_db(db_file):
-    conn = None
-    try:
-        # Create a connection to the database file
-        conn = sqlite3.connect(db_file)
-        return conn
-    except sqlite3.Error as e:
-        # Print any errors
-        print(e)
-    return conn
 
+def create_tables(database):
+    conn = sqlite3.connect(database)
+    food = conn.cursor()
+    food.execute("PRAGMA foreign_keys = ON;")
+    conn.commit()
+    food.execute(f"CREATE TABLE IF NOT EXISTS ingredients(ingredient_id INTEGER PRIMARY KEY, ingredient_name TEXT NOT NULL UNIQUE);")
+    food.execute(f"CREATE TABLE IF NOT EXISTS measures(measure_id INTEGER PRIMARY KEY, measure_name TEXT UNIQUE);")
+    food.execute(f"CREATE TABLE IF NOT EXISTS meals(meal_id INTEGER PRIMARY KEY, meal_name TEXT NOT NULL UNIQUE);")
+    food.execute(f"CREATE TABLE IF NOT EXISTS recipes(recipe_id INTEGER PRIMARY KEY, recipe_name TEXT NOT NULL, recipe_description TEXT);")
+    food.execute(f"CREATE TABLE IF NOT EXISTS serve(serve_id INTEGER PRIMARY KEY, recipe_id INTEGER NOT NULL, meal_id INTEGER NOT NULL, "
+                   f"FOREIGN KEY(recipe_id) REFERENCES recipes(recipe_id), FOREIGN KEY(meal_id) REFERENCES meals(meal_id));")
+    food.execute(f"CREATE TABLE IF NOT EXISTS quantity(quantity_id INTEGER PRIMARY KEY, recipe_id INTEGER NOT NULL, quantity INTEGER NOT NULL, measure_id INTEGER NOT NULL, ingredient_id INTEGER NOT NULL, "
+                   f"FOREIGN KEY(recipe_id) REFERENCES recipes(recipe_id), FOREIGN KEY(measure_id) REFERENCES measures(measure_id), FOREIGN KEY(ingredient_id) REFERENCES ingredients(ingredient_id));")
+
+        
 # Create a table with field definitions in connection
 def create_table(conn, t_name, flds):
     # Construct the SQL statement to create table
