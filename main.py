@@ -71,6 +71,30 @@ def add_data(conn):
 
     conn.commit()
 
+
+def print_query(database, ingredients, meals):
+    conn = sqlite3.connect(database)
+    food = conn.cursor()
+    quantity, quantity_out, q_o = [], [], []
+    for ingredient in ingredients.split(","):
+        quantity.append(set(number[0] for number in food.execute(f"SELECT recipe_id FROM quantity where ingredient_id in (SELECT ingredient_id FROM ingredients WHERE ingredient_name = '{ingredient}')").fetchall()))
+    quantity = set.intersection(*quantity)
+    for meal in meals.split(","):
+        quantity_out.append(set(number[0] for number in food.execute(f"SELECT recipe_id FROM serve WHERE meal_id in (SELECT meal_id FROM meals WHERE meal_name = '{meal}')").fetchall()))
+    if len(meals.split(",")) == 1:
+        q_o = set.intersection(*quantity_out)
+    else:
+        for q_all in [*quantity_out]:
+            for q in q_all:
+                if q in quantity:
+                    q_o.append(q)
+
+    recipes = ", ".join([food.execute(f"SELECT recipe_name FROM recipes WHERE recipe_id = '{i_d}'").fetchone()[0] for i_d in set.intersection(quantity, q_o)])
+
+    print(f"Recipes selected for you: {recipes}" if recipes else "There are no such recipes in the database.")
+    pass
+
+
 # Main function to create the database and add sample data
 def main():
     args = sys.argv
