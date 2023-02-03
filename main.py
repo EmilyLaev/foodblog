@@ -66,24 +66,6 @@ def create_db(db_name):
     create_table(conn, 'meals', flds)
     return conn
 
-# Add sample data to the database tables
-def add_data(conn):
-    # Define sample data for the tables
-    data = {"meals": ("breakfast", "brunch", "lunch", "supper"),
-        "ingredients": ("milk", "cacao", "strawberry", "blueberry", "blackberry", "sugar"),
-        "measures": ("ml", "g", "l", "cup", "tbsp", "tsp", "dsp", "")}
-
-    # Create a cursor to execute SQL statements
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM meals")
-    rows = cur.fetchall()
-    if len(rows) == 0:
-        for d in data:
-            for v in data[d]:
-                cur.execute(f"INSERT INTO {d} ({d[:-1]}_name) VALUES ('{v}');")
-
-    conn.commit()
-
 
 def print_query(database, ingredients, meals):
     conn = sqlite3.connect(database)
@@ -106,6 +88,19 @@ def print_query(database, ingredients, meals):
 
     print(f"Recipes selected for you: {recipes}" if recipes else "There are no such recipes in the database.")
     pass
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('File')
+parser.add_argument('--ingredients')
+parser.add_argument('--meals')
+args = parser.parse_args()
+
+if not args.ingredients:
+    create_tables(sys.argv[1])
+    feeding_database(sys.argv[1])
+else:
+    print_query(args.File, args.ingredients, args.meals)
 
 
 # Main function to create the database and add sample data
