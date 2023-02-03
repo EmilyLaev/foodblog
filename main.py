@@ -1,5 +1,11 @@
 import sqlite3
 import sys
+import argparse
+
+
+data = {"meals": ("breakfast", "brunch", "lunch", "supper"),
+        "ingredients": ("milk", "cacao", "strawberry", "blueberry", "blackberry", "sugar"),
+        "measures": ("ml", "g", "l", "cup", "tbsp", "tsp", "dsp", "")}
 
 # Connect to database file and return a connection object
 def connect_db(db_file):
