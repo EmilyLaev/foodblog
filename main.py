@@ -22,6 +22,19 @@ def create_tables(database):
     food.execute(f"CREATE TABLE IF NOT EXISTS quantity(quantity_id INTEGER PRIMARY KEY, recipe_id INTEGER NOT NULL, quantity INTEGER NOT NULL, measure_id INTEGER NOT NULL, ingredient_id INTEGER NOT NULL, "
                    f"FOREIGN KEY(recipe_id) REFERENCES recipes(recipe_id), FOREIGN KEY(measure_id) REFERENCES measures(measure_id), FOREIGN KEY(ingredient_id) REFERENCES ingredients(ingredient_id));")
 
+    conn.commit()
+    for table in data:
+        for item in data[table]:
+            try:
+                food.execute(f"INSERT INTO {table}({table[:-1]}_name) VALUES('{item}')")
+            except sqlite3.IntegrityError:
+                print(f"{item} integrity")
+
+                pass
+    conn.commit()
+    conn.close()
+
+
         
 # Create a table with field definitions in connection
 def create_table(conn, t_name, flds):
