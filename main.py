@@ -34,19 +34,50 @@ def create_tables(database):
     conn.commit()
     conn.close()
 
-
         
-# Create a table with field definitions in connection
-def create_table(conn, t_name, flds):
-    # Construct the SQL statement to create table
-    sql = f'CREATE TABLE IF NOT EXISTS {t_name} ({flds});'
-    try:
-        # Execute SQL statement to create table
-        c = conn.cursor()
-        c.execute(sql)
-    except sqlite3.Error as e:
-        # Print errors
-        print(e)
+def feeding_database(database):
+    conn = sqlite3.connect(database)
+    food = conn.cursor()
+    while True:
+        print("Pass the empty recipe name to exit.")
+        name = input("Recipe name: ")
+        if name == "":
+            return
+        description = input('Recipe description: ')
+        recipe_id = food.execute(f"INSERT INTO recipes(recipe_name, recipe_description) VALUES('{name}', '{description}')").lastrowid
+        conn.commit()
+        meals_data = food.execute(f"SELECT * FROM meals")
+        print(" ".join([str(measure[0]) + ") " + measure[1] + " " for measure in meals_data.fetchall()]))
+        meals = input("Enter proposed meals separated by a space: ").split(" ")
+        for meal in meals:
+            food.execute(f"INSERT INTO serve(meal_id, recipe_id) VALUES('{meal}', '{recipe_id}')")
+        conn.commit()
+        while True:
+            ingredient = input("Input quantity of ingredient <press enter to stop>: ").split(" ")
+            if ingredient[0] == "":
+                conn.commit()
+                break
+            elif any([len(ingredient) < 2, len(ingredient) > 3]):
+                print("Wrong form! Should be [quantity <measure> ingredient]!")
+            else:
+                if len(ingredient) == 2:
+                    i_measure = food.execute(f"SELECT measure_id FROM measures WHERE measure_name = ''").fetchall()
+                    i_ingredient = food.execute(f"SELECT ingredient_id FROM ingredients WHERE ingredient_name LIKE '%{ingredient[1]}%'").fetchall()
+                else:
+                    i_measure = food.execute(f"SELECT measure_id FROM measures WHERE measure_name LIKE '{ingredient[1]}%'").fetchall()
+                    i_ingredient = food.execute(f"SELECT ingredient_id FROM ingredients WHERE ingredient_name LIKE '%{ingredient[2]}%'").fetchall()
+                if any([len(i_measure) !=1, len(i_ingredient) != 1]):
+                    if len(i_measure) == 0:
+                        print("There is no such a measure!")
+                    elif len(i_measure) !=1:
+                        print("The measure is not conclusive!")
+                    if len(i_ingredient) == 0:
+                        print("There is no such a ingredient!")
+                    elif len(i_ingredient) !=1:
+                        print("The ingredient is not conclusive!")
+                else:
+                    food.execute(f"INSERT INTO quantity(recipe_id, quantity, measure_id, ingredient_id) VALUES('{recipe_id}', '{ingredient[0]}', '{i_measure[0][0]}','{i_ingredient[0][0]}')")
+ 
 
 # Create the database and return a connection object
 def create_db(db_name):
