@@ -2,17 +2,22 @@ import sqlite3
 import sys
 import argparse
 
-
+# Define dictionaries with initial data for tables
 data = {"meals": ("breakfast", "brunch", "lunch", "supper"),
         "ingredients": ("milk", "cacao", "strawberry", "blueberry", "blackberry", "sugar"),
         "measures": ("ml", "g", "l", "cup", "tbsp", "tsp", "dsp", "")}
 
-
+# Function to create tables in SQLite database
 def create_tables(database):
+    # Connect to the database and create a cursor object
     conn = sqlite3.connect(database)
     food = conn.cursor()
+
+    # Enable foreign keys for the database
     food.execute("PRAGMA foreign_keys = ON;")
     conn.commit()
+        
+    # Create tables for ingredients, measures, meals, recipes, serve, and quantity
     food.execute(f"CREATE TABLE IF NOT EXISTS ingredients(ingredient_id INTEGER PRIMARY KEY, ingredient_name TEXT NOT NULL UNIQUE);")
     food.execute(f"CREATE TABLE IF NOT EXISTS measures(measure_id INTEGER PRIMARY KEY, measure_name TEXT UNIQUE);")
     food.execute(f"CREATE TABLE IF NOT EXISTS meals(meal_id INTEGER PRIMARY KEY, meal_name TEXT NOT NULL UNIQUE);")
@@ -22,19 +27,24 @@ def create_tables(database):
     food.execute(f"CREATE TABLE IF NOT EXISTS quantity(quantity_id INTEGER PRIMARY KEY, recipe_id INTEGER NOT NULL, quantity INTEGER NOT NULL, measure_id INTEGER NOT NULL, ingredient_id INTEGER NOT NULL, "
                    f"FOREIGN KEY(recipe_id) REFERENCES recipes(recipe_id), FOREIGN KEY(measure_id) REFERENCES measures(measure_id), FOREIGN KEY(ingredient_id) REFERENCES ingredients(ingredient_id));")
 
+    # Commit changes to the database
     conn.commit()
+
+    # Insert initial data for tables into the database
     for table in data:
         for item in data[table]:
             try:
                 food.execute(f"INSERT INTO {table}({table[:-1]}_name) VALUES('{item}')")
             except sqlite3.IntegrityError:
                 print(f"{item} integrity")
-
+                # Pass if an integrity error occurs
                 pass
+    # Commit changes to the database and close the connection
     conn.commit()
     conn.close()
 
         
+# Function to add data to the database
 def feeding_database(database):
     conn = sqlite3.connect(database)
     food = conn.cursor()
