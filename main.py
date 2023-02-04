@@ -79,25 +79,6 @@ def feeding_database(database):
                     food.execute(f"INSERT INTO quantity(recipe_id, quantity, measure_id, ingredient_id) VALUES('{recipe_id}', '{ingredient[0]}', '{i_measure[0][0]}','{i_ingredient[0][0]}')")
  
 
-# Create the database and return a connection object
-def create_db(db_name):
-    conn = connect_db(db_name)
-    flds = '''  measure_id INTEGER PRIMARY KEY,
-                measure_name TEXT UNIQUE'''
-    # Create measures table
-    create_table(conn, 'measures', flds)
-    flds = '''  ingredient_id INTEGER PRIMARY KEY,
-                ingredient_name TEXT NOT NULL UNIQUE'''
-    # Create ingredients table
-    create_table(conn, 'ingredients', flds)
-    # Define fields for ingredients
-    flds = '''  meal_id INTEGER PRIMARY KEY,
-                meal_name TEXT NOT NULL UNIQUE'''
-    # Create meals table
-    create_table(conn, 'meals', flds)
-    return conn
-
-
 def print_query(database, ingredients, meals):
     conn = sqlite3.connect(database)
     food = conn.cursor()
@@ -132,19 +113,3 @@ if not args.ingredients:
     feeding_database(sys.argv[1])
 else:
     print_query(args.File, args.ingredients, args.meals)
-
-
-# Main function to create the database and add sample data
-def main():
-    args = sys.argv
-    if len(args) != 2:
-        print('Specify the DB name as an argument')
-        exit()
-
-    db_name = args[1]
-    conn = create_db(db_name)
-    add_data(conn)
-    print('db_name =', db_name)
-
-if __name__ == "__main__":
-    main()
